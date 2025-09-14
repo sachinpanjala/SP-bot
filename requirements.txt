@@ -1,0 +1,9 @@
+Flask
+Flask-Cors
+google-generativeai
+Pillow
+sentence-transformers
+scikit-learn
+openai
+ollama
+tenacity

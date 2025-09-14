@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Personal Bot</title>
+    <style>
+        :root {
+            --bg-color: #1a1a1a;
+            --container-bg: #222;
+            --input-bg: #2d2d2d;
+            --text-color: #e0e0e0;
+            --accent-color: #5b90f6;
+            --message-bg-user: #005c4b;
+            --message-bg-bot: #3a3a3a;
+            --button-bg-color: #4a4a4a;
+        }
+
+        body {
+            font-family: 'Google Sans', sans-serif, Roboto, Arial;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 1rem;
+        }
+        
+        .chat-container-main {
+            width: 100%;
+            max-width: 900px;
+            height: 90vh;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+        
+        header {
+            text-align: center;
+            padding: 1rem;
+            color: var(--text-color);
+        }
+
+        .chat-history {
+            flex-grow: 1;
+            padding: 1rem;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        .message {
+            max-width: 85%;
+            padding: 0.7rem 1rem;
+            word-wrap: break-word;
+            animation: fadeIn 0.4s ease-out forwards;
+            opacity: 0;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .message-user {
+            background-color: var(--message-bg-user);
+            align-self: flex-end;
+            color: #fff;
+            border-radius: 18px 18px 0 18px;
+        }
+        
+        .message-bot {
+            background-color: var(--message-bg-bot);
+            align-self: flex-start;
+            border-radius: 18px 18px 18px 0;
+        }
+
+        .image-preview {
+            max-width: 100%;
+            border-radius: 12px;
+            margin-top: 0.5rem;
+        }
+        
+        .input-area-container {
+            position: sticky;
+            bottom: 0;
+            width: 100%;
+            padding: 1rem;
+            box-sizing: border-box;
+            background: linear-gradient(to top, var(--bg-color), transparent 100%);
+            display: flex;
+            justify-content: center;
+        }
+        
+        .input-bar {
+            background-color: var(--input-bg);
+            border-radius: 28px;
+            padding: 0.5rem 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            width: 100%;
+            max-width: 700px;
+            transition: box-shadow 0.2s ease-in-out, border 0.2s ease-in-out;
+            border: 1px solid var(--input-bg);
+        }
+        
+        .input-bar:hover, .input-bar:focus-within {
+            box-shadow: 0 0 0 1px var(--accent-color);
+        }
+        
+        #text-input {
+            flex-grow: 1;
+            border: none;
+            background: transparent;
+            color: var(--text-color);
+            outline: none;
+            padding: 0.5rem;
+        }
+        
+        #text-input::placeholder {
+            color: #888;
+        }
+        
+        .input-button {
+            background-color: transparent;
+            border: none;
+            cursor: pointer;
+            color: #888;
+            padding: 0.5rem;
+            border-radius: 50%;
+            transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .input-button:hover {
+            background-color: #4a4a4a;
+            color: var(--text-color);
+        }
+        
+        #send-button {
+            background-color: var(--accent-color);
+            color: var(--text-color);
+        }
+        
+        #send-button:hover {
+            background-color: #6999ff;
+            color: var(--text-color);
+        }
+        
+        #send-button:disabled {
+            background-color: #555;
+            cursor: not-allowed;
+            color: #888;
+        }
+
+        .drop-zone-active {
+            border: 1px solid var(--accent-color);
+            box-shadow: 0 0 0 3px rgba(91, 144, 246, 0.4);
+        }
+        
+        #image-upload { display: none; }
+        
+        .thinking-dots {
+            display: flex;
+            gap: 4px;
+        }
+        .thinking-dots span {
+            width: 8px;
+            height: 8px;
+            background: #aaa;
+            border-radius: 50%;
+            animation: pulse 1s infinite;
+        }
+        .thinking-dots span:nth-child(2) { animation-delay: 0.2s; }
+        .thinking-dots span:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes pulse {
+            0% { transform: scale(0.8); opacity: 0.5; }
+            50% { transform: scale(1.2); opacity: 1; }
+            100% { transform: scale(0.8); opacity: 0.5; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="chat-container-main">
+        <header>
+            <h1 style="font-size: 1.5rem; font-weight: 500;">
+                <span class="gradient-text">Panjala's</span> Personal Assistant 🤖
+            </h1>
+        </header>
+
+        <main id="chat-history" class="chat-history">
+            </main>
+
+        <footer id="drop-zone" class="input-area-container">
+            <div class="input-bar">
+                <input type="text" id="text-input" placeholder="Ask or tell your bot something...">
+                <label for="image-upload" class="input-button" style="margin: 0;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
+                </label>
+                <input type="file" id="image-upload" accept="image/*">
+                <button id="send-button" class="input-button">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+                </button>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        const chatHistory = document.getElementById('chat-history');
+        const textInput = document.getElementById('text-input');
+        const sendButton = document.getElementById('send-button');
+        const imageUpload = document.getElementById('image-upload');
+        const dropZone = document.getElementById('drop-zone');
+
+        const SERVER_URL = 'http://192.168.1.198:8000'; // Replace with your computer's IP
+        let isSending = false;
+        
+        const conversationHistory = [];
+
+        async function sendMessage(file = null) {
+            if (isSending) return;
+
+            const question = textInput.value.trim();
+            const fileToUpload = file || (imageUpload.files.length > 0 ? imageUpload.files[0] : null);
+
+            if (!question && !fileToUpload) return;
+
+            isSending = true;
+            sendButton.innerHTML = `<svg class="animate-spin" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 4.75V6.25" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M17.1266 6.87347L16.0659 7.93413" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M19.25 12L17.75 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M17.1266 17.1265L16.0659 16.0659" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M12 17.75V19.25" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M7.93413 16.0659L6.87347 17.1265" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M6.25 12L4.75 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M7.93413 7.93413L6.87347 6.87347" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path></svg>`;
+            sendButton.disabled = true;
+            textInput.disabled = true;
+
+            appendMessage(question, 'user', fileToUpload);
+            const thinkingMessage = appendMessage('', 'bot', null, true);
+
+            const requestBody = { question: question };
+            if (fileToUpload) {
+                requestBody.image = await convertImageToBase64(fileToUpload);
+            }
+            
+            requestBody.history = conversationHistory;
+
+            textInput.value = '';
+            imageUpload.value = null;
+
+            try {
+                const response = await fetch(`${SERVER_URL}/ask`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(requestBody)
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                thinkingMessage.remove();
+                appendMessage(data.answer, 'bot');
+                
+                conversationHistory.push({ role: 'user', parts: [{ text: question }] });
+                conversationHistory.push({ role: 'model', parts: [{ text: data.answer }] });
+
+            } catch (error) {
+                thinkingMessage.remove();
+                appendMessage("Error: Could not connect to the bot.", 'bot');
+                console.error('Error:', error);
+            } finally {
+                isSending = false;
+                sendButton.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>`;
+                sendButton.disabled = false;
+                textInput.disabled = false;
+                textInput.focus();
+            }
+        }
+
+        function convertImageToBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result.split(',')[1]);
+                reader.onerror = error => reject(error);
+                reader.readAsDataURL(file);
+            });
+        }
+
+        function appendMessage(message, sender, file = null, isThinking = false) {
+            const messageElement = document.createElement('div');
+            messageElement.classList.add('message', sender === 'user' ? 'message-user' : 'message-bot');
+            
+            if (isThinking) {
+                messageElement.innerHTML = `<div class="thinking-dots"><span></span><span></span><span></span></div>`;
+            } else if (message) {
+                messageElement.textContent = message;
+            }
+
+            if (file) {
+                const imgElement = document.createElement('img');
+                imgElement.src = URL.createObjectURL(file);
+                imgElement.classList.add('image-preview');
+                messageElement.appendChild(imgElement);
+            }
+
+            chatHistory.appendChild(messageElement);
+            chatHistory.scrollTop = chatHistory.scrollHeight;
+            return messageElement;
+        }
+
+        sendButton.addEventListener('click', () => sendMessage());
+        textInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('drop-zone-active');
+        });
+
+        dropZone.addEventListener('dragleave', () => {
+            dropZone.classList.remove('drop-zone-active');
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('drop-zone-active');
+            
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                const file = files[0];
+                if (file.type.startsWith('image/')) {
+                    sendMessage(file);
+                }
+            }
+        });
+        
+        window.addEventListener('load', () => textInput.focus());
+    </script>
+</body>
+</html>

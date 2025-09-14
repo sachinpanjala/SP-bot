@@ -1,0 +1,14 @@
+version: '3.8'
+
+services:
+  personal-bot:
+    build: .
+    container_name: personal-bot
+    restart: always
+    environment:
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./knowledge.md:/app/knowledge.md
+      - ./images:/app/images
